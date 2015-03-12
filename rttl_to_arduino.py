@@ -4,6 +4,8 @@
 import re
 import sys
 
+MAX_NOTES_CNT = 100;
+
 def parse_defaults(s):
     bpm = 63
     duration = 4
@@ -54,10 +56,16 @@ def parse_notes(s, d_bpm, d_duration, d_scale):
             tone_constant = '0'
         else:
             tone_constant = ('NOTE_%s%d' % (note.upper(), scale)).replace('#', 'S')
-        if cnt:
-            sys.stdout.write(',')
-        sys.stdout.write('{%s, %d}' % (tone_constant, millis))
+        sys.stdout.write('{%s, %d},' % (tone_constant, millis))
         cnt += 1
+    sys.stderr.write('Notes cnt: %d\n' % cnt)
+    if cnt > MAX_NOTES_CNT:
+        raise RuntimeError('Increase MAX_NOTES_CNT to at least %d' % cnt);
+    while cnt < MAX_NOTES_CNT:
+        sys.stdout.write('{0, 0}')
+        cnt += 1
+        if cnt < MAX_NOTES_CNT:
+            sys.stdout.write(',')
     sys.stdout.write(' }')
 
 def main(s):
@@ -79,7 +87,8 @@ if __name__ == '__main__':
         'HauntHouse: d=4,o=5,b=108: 2a4, 2e, 2d#, 2b4, 2a4, 2c, 2d, 2a#4, 2e., e, 1f4, 1a4, 1d#, 2e., d, 2c., b4, 1a4, 1p, 2a4, 2e, 2d#, 2b4, 2a4, 2c, 2d, 2a#4, 2e., e, 1f4, 1a4, 1d#, 2e., d, 2c., b4, 1a4',
     )
     sys.stdout.write('const int MELODIES_LEN=%d;\n' % len(songs))
-    sys.stdout.write('const int MELODIES[MELODIES_LEN][2] = {')
+    sys.stdout.write('const int MELODIES_MAX_NOTES=%d;\n' % MAX_NOTES_CNT)
+    sys.stdout.write('const int MELODIES[MELODIES_LEN][MELODIES_MAX_NOTES][2] = {')
     cnt = 0
     for s in songs:
         if cnt:
